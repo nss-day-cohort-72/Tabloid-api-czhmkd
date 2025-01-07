@@ -9,6 +9,7 @@ public class TabloidDbContext : IdentityDbContext<IdentityUser>
     private readonly IConfiguration _configuration;
 
     public DbSet<UserProfile> UserProfiles { get; set; }
+    public DbSet<Posts> Posts { get; set; }
 
 
     public TabloidDbContext(DbContextOptions<TabloidDbContext> context, IConfiguration config) : base(context)
@@ -20,6 +21,7 @@ public class TabloidDbContext : IdentityDbContext<IdentityUser>
     {
         base.OnModelCreating(modelBuilder);
 
+        //Seed Roles
         modelBuilder.Entity<IdentityRole>().HasData(new IdentityRole
         {
             Id = "c3aaeb97-d2ba-4a53-a521-4eea61e59b35",
@@ -27,6 +29,7 @@ public class TabloidDbContext : IdentityDbContext<IdentityUser>
             NormalizedName = "admin"
         });
 
+        //Seed Users
         modelBuilder.Entity<IdentityUser>().HasData(new IdentityUser[]
         {
             new IdentityUser
@@ -74,6 +77,7 @@ public class TabloidDbContext : IdentityDbContext<IdentityUser>
 
         });
 
+        //Assign Roles to Users
         modelBuilder.Entity<IdentityUserRole<string>>().HasData(new IdentityUserRole<string>[]
         {
             new IdentityUserRole<string>
@@ -88,6 +92,8 @@ public class TabloidDbContext : IdentityDbContext<IdentityUser>
             },
 
         });
+
+        //Seed UserProfiles
         modelBuilder.Entity<UserProfile>().HasData(new UserProfile[]
         {
             new UserProfile
@@ -145,5 +151,56 @@ public class TabloidDbContext : IdentityDbContext<IdentityUser>
                 IdentityUserId = "d224a03d-bf0c-4a05-b728-e3521e45d74d",
             }
         });
+
+        //Seed Posts
+        modelBuilder.Entity<Posts>().HasData(new Posts[]
+            {
+                new Posts
+                {
+                    Id = 1,
+                    Title = "Introduction to Tabloid",
+                    Author = "Admina Strator",
+                    Category = "Tech",
+                    PublicationDate = new DateTime(2022, 12, 25),
+                    IsApproved = true
+                },
+                new Posts
+                {
+                    Id = 2,
+                    Title = "The Future of AI",
+                    Author = "John Doe",
+                    Category = "Science",
+                    PublicationDate = new DateTime(2023, 1, 15),
+                    IsApproved = true
+                },
+                new Posts
+                {
+                    Id = 3,
+                    Title = "Gardening Tips for Spring",
+                    Author = "Alice Johnson",
+                    Category = "Lifestyle",
+                    PublicationDate = new DateTime(2023, 2, 20),
+                    IsApproved = false // Not approved
+                },
+                new Posts
+                {
+                    Id = 4,
+                    Title = "10 Best Travel Destinations",
+                    Author = "Bob Williams",
+                    Category = "Travel",
+                    PublicationDate = new DateTime(2023, 3, 5),
+                    IsApproved = true
+                },
+                new Posts
+                {
+                    Id = 5,
+                    Title = "Understanding Quantum Physics",
+                    Author = "Eve Davis",
+                    Category = "Education",
+                    PublicationDate = new DateTime(2023, 4, 1),
+                    IsApproved = true
+                }
+            });
+
     }
 }
