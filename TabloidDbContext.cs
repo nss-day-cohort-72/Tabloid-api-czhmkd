@@ -10,6 +10,7 @@ public class TabloidDbContext : IdentityDbContext<IdentityUser>
 
     public DbSet<UserProfile> UserProfiles { get; set; }
     public DbSet<Posts> Posts { get; set; }
+    public DbSet<Category> Category { get; set; }
 
 
     public TabloidDbContext(DbContextOptions<TabloidDbContext> context, IConfiguration config) : base(context)
@@ -160,7 +161,7 @@ public class TabloidDbContext : IdentityDbContext<IdentityUser>
                     Id = 1,
                     Title = "Introduction to Tabloid",
                     Author = "Admina Strator",
-                    Category = "Tech",
+                    CategoryId = 1,
                     PublicationDate = new DateTime(2022, 12, 25),
                     IsApproved = true
                 },
@@ -169,7 +170,7 @@ public class TabloidDbContext : IdentityDbContext<IdentityUser>
                     Id = 2,
                     Title = "The Future of AI",
                     Author = "John Doe",
-                    Category = "Science",
+                    CategoryId = 2,
                     PublicationDate = new DateTime(2023, 1, 15),
                     IsApproved = true
                 },
@@ -178,7 +179,7 @@ public class TabloidDbContext : IdentityDbContext<IdentityUser>
                     Id = 3,
                     Title = "Gardening Tips for Spring",
                     Author = "Alice Johnson",
-                    Category = "Lifestyle",
+                    CategoryId = 3,
                     PublicationDate = new DateTime(2023, 2, 20),
                     IsApproved = false // Not approved
                 },
@@ -187,7 +188,7 @@ public class TabloidDbContext : IdentityDbContext<IdentityUser>
                     Id = 4,
                     Title = "10 Best Travel Destinations",
                     Author = "Bob Williams",
-                    Category = "Travel",
+                    CategoryId = 4,
                     PublicationDate = new DateTime(2023, 3, 5),
                     IsApproved = true
                 },
@@ -196,11 +197,21 @@ public class TabloidDbContext : IdentityDbContext<IdentityUser>
                     Id = 5,
                     Title = "Understanding Quantum Physics",
                     Author = "Eve Davis",
-                    Category = "Education",
+                    CategoryId = 5,
                     PublicationDate = new DateTime(2023, 4, 1),
                     IsApproved = true
                 }
             });
+
+        // Seed Categories
+        modelBuilder.Entity<Category>().HasData(new Category[]
+        {
+            new Category { Id = 1, Name = "Tech" },
+            new Category { Id = 2, Name = "Science" },
+            new Category { Id = 3, Name = "Lifestyle" },
+            new Category { Id = 4, Name = "Travel" },
+            new Category { Id = 5, Name = "Education" }
+        });
 
     }
 }

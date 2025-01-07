@@ -10,9 +10,12 @@ public class Posts
     [Required]
     public string Author { get; set; }
     [Required]
-    public string Category { get; set; }
-    [Required]
     public DateTime PublicationDate { get; set; }
     public bool IsApproved { get; set; }
+
+
+    // Reference to Category class
+    public int CategoryId { get; set; }
+    public Category Category { get; set; }
 
 }

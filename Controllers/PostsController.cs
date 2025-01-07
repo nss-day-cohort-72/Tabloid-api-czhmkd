@@ -28,10 +28,19 @@ public class PostsController : ControllerBase
     public IActionResult GetAllApprovedPosts()
     {
         var posts = _dbContext.Posts
-            .Where(p => p.IsApproved == true && p.PublicationDate < DateTime.Now)
-            .OrderByDescending(p => p.PublicationDate)
-            .ToList();
-
+           .Include(p => p.Category)
+           .Where(p => p.IsApproved == true && p.PublicationDate < DateTime.Now)
+           .OrderByDescending(p => p.PublicationDate)
+           .Select(p => new
+           {
+               p.Id,
+               p.Title,
+               p.Author,
+               p.IsApproved,
+               p.PublicationDate,
+               Category = p.Category.Name
+           })
+           .ToList();
         return Ok(posts);
     }
 
