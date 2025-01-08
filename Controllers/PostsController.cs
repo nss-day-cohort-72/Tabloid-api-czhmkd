@@ -45,12 +45,26 @@ public class PostsController : ControllerBase
     }
 
     // //Get the logged in users posts
-    // [HttpGet("myposts")]
-    // [Authorize]
-    // public IActionResult GetMyPosts()
-    // {
+    [HttpGet("myposts")]
+    [Authorize]
+    public IActionResult GetAllPosts()
+    {
+        var posts = _dbContext.Posts
+             .Include(p => p.Category)
+             .Select(p => new
+             {
+                 p.Id,
+                 p.Title,
+                 p.Author,
+                 p.IsApproved,
+                 p.PublicationDate,
+                 Category = p.Category.Name
+             })
+             .OrderByDescending(p => p.PublicationDate)
+             .ToList();
 
-    // }
+        return Ok(posts);
+    }
 
     //Get a single posts details by Id
     [HttpGet("{id}")]
