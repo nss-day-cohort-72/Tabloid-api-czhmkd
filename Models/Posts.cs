@@ -12,6 +12,10 @@ public class Posts
     [Required]
     public DateTime PublicationDate { get; set; }
     public bool IsApproved { get; set; }
+    [Required]
+    public string Content { get; set; }
+
+    public string HeaderImage { get; set; }
 
 
     // Reference to Category class
