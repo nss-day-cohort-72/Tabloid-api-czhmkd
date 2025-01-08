@@ -163,7 +163,9 @@ public class TabloidDbContext : IdentityDbContext<IdentityUser>
                     Author = "Admina Strator",
                     CategoryId = 1,
                     PublicationDate = new DateTime(2022, 12, 25),
-                    IsApproved = true
+                    Content = "Welcome to Tabloid, your one-stop platform for insightful articles across various categories. Stay tuned for exciting content!",
+                    IsApproved = true,
+                    HeaderImage = "https://example.com/images/tabloid_intro.jpg"
                 },
                 new Posts
                 {
@@ -172,7 +174,9 @@ public class TabloidDbContext : IdentityDbContext<IdentityUser>
                     Author = "John Doe",
                     CategoryId = 2,
                     PublicationDate = new DateTime(2023, 1, 15),
-                    IsApproved = true
+                    IsApproved = true,
+                    Content = "Artificial intelligence is transforming industries worldwide. Explore its potential and challenges in this article.",
+                    HeaderImage = "https://example.com/images/future_of_ai.jpg"
                 },
                 new Posts
                 {
@@ -181,7 +185,9 @@ public class TabloidDbContext : IdentityDbContext<IdentityUser>
                     Author = "Alice Johnson",
                     CategoryId = 3,
                     PublicationDate = new DateTime(2023, 2, 20),
-                    IsApproved = false // Not approved
+                    IsApproved = false,
+                    Content = "Spring is the perfect time to start your gardening journey. Learn essential tips to make your garden thrive.",
+                    HeaderImage = "https://example.com/images/gardening_tips.jpg"
                 },
                 new Posts
                 {
@@ -190,7 +196,9 @@ public class TabloidDbContext : IdentityDbContext<IdentityUser>
                     Author = "Bob Williams",
                     CategoryId = 4,
                     PublicationDate = new DateTime(2023, 3, 5),
-                    IsApproved = true
+                    IsApproved = true,
+                    Content = "Discover the top 10 travel destinations for your next adventure. These spots offer unique experiences for everyone.",
+                    HeaderImage = "https://example.com/images/travel_destinations.jpg"
                 },
                 new Posts
                 {
@@ -199,7 +207,9 @@ public class TabloidDbContext : IdentityDbContext<IdentityUser>
                     Author = "Eve Davis",
                     CategoryId = 5,
                     PublicationDate = new DateTime(2023, 4, 1),
-                    IsApproved = true
+                    IsApproved = true,
+                    Content = "Quantum physics might seem complex, but this article breaks it down into simple concepts for easy understanding.",
+                    HeaderImage = "https://example.com/images/quantum_physics.jpg"
                 }
             });
 
