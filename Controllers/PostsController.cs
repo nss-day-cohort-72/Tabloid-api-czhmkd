@@ -44,6 +44,34 @@ public class PostsController : ControllerBase
         return Ok(posts);
     }
 
+    //Get a single posts details by Id
+    [HttpGet("{id}")]
+    [Authorize]
+    public IActionResult GetPostDetails(int id)
+    {
+        var post = _dbContext.Posts
+        .Include(p => p.Category)
+        .Where(p => p.Id == id)
+        .Select(p => new
+        {
+            p.Id,
+            p.Title,
+            p.Author,
+            p.IsApproved,
+            PublicationDate = p.PublicationDate.ToString("MM/dd/yyyy"),
+            p.Content,
+            p.HeaderImage,
+            Category = p.Category.Name
+        })
+        .FirstOrDefault();
+
+        if (post == null)
+        {
+            return NotFound(new { message = "Post not found." });
+        }
+
+        return Ok(post);
+    }
 
 
     ////Put Endpoints
