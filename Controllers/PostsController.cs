@@ -44,6 +44,14 @@ public class PostsController : ControllerBase
         return Ok(posts);
     }
 
+    // //Get the logged in users posts
+    // [HttpGet("myposts")]
+    // [Authorize]
+    // public IActionResult GetMyPosts()
+    // {
+
+    // }
+
     //Get a single posts details by Id
     [HttpGet("{id}")]
     [Authorize]
