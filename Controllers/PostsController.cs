@@ -4,6 +4,8 @@ using Tabloid.Data;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Identity;
+using Tabloid.Models.DTOs;
+using System.Security.Claims;
 
 namespace Tabloid.Controllers;
 
@@ -96,7 +98,47 @@ public class PostsController : ControllerBase
     }
 
 
-    ////Put Endpoints
+    ////Post Endpoints
+    //Create a new post
+    [HttpPost("newpost")]
+    [Authorize]
+    public IActionResult CreatePost(CreatePostDTO createPostDTO)
+    {
 
+        //Get logged in users Identity User Id
+        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+        if (string.IsNullOrEmpty(userId))
+        {
+            return Unauthorized(new { message = "Unauthorized" });
+        }
+
+        //Find the user profile by the Identity User Id 
+        var userProfile = _dbContext.UserProfiles.FirstOrDefault(up => up.IdentityUserId == userId);
+
+        if (userProfile == null)
+        {
+            return NotFound(new { message = "User not found." });
+        }
+
+        //Create a new post object
+        var newPost = new Posts()
+        {
+            Title = createPostDTO.Title,
+            PublicationDate = createPostDTO.PublicationDate ?? DateTime.Now,
+            Content = createPostDTO.Content,
+            HeaderImage = createPostDTO.HeaderImage,
+            CategoryId = createPostDTO.CategoryId,
+            Author = userProfile.FullName,
+            IsApproved = false
+        };
+
+        //Add the post to the database
+        _dbContext.Posts.Add(newPost);
+        _dbContext.SaveChanges();
+
+        //return the details of the post
+        return CreatedAtAction("GetPostDetails", new { id = newPost.Id }, newPost);
+    }
 }
 
