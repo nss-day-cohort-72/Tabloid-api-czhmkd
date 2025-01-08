@@ -86,14 +86,66 @@ public class UserProfileController : ControllerBase
         UserProfile user = _dbContext
             .UserProfiles
             .Include(up => up.IdentityUser)
+            .Select(up => new UserProfile
+            {
+                Id = up.Id,
+                FirstName = up.FirstName,
+                LastName = up.LastName,
+                Email = up.IdentityUser.Email,
+                UserName = up.IdentityUser.UserName,
+                ImageLocation = up.ImageLocation,
+                IdentityUserId = up.IdentityUserId,
+                Roles = _dbContext.UserRoles
+            .Where(ur => ur.UserId == up.IdentityUserId)
+            .Select(ur => _dbContext.Roles.SingleOrDefault(r => r.Id == ur.RoleId).Name)
+            .ToList()
+            })
             .SingleOrDefault(up => up.Id == id);
 
         if (user == null)
         {
             return NotFound();
         }
-        user.Email = user.IdentityUser.Email;
-        user.UserName = user.IdentityUser.UserName;
         return Ok(user);
     }
+
+    [HttpPut("{id}")]
+    [Authorize(Roles = "Admin")]
+    public IActionResult EditUser(int id, UserProfile user)
+    {
+        UserProfile foundUser = _dbContext.UserProfiles
+        .Include(up => up.IdentityUser)
+        .FirstOrDefault(u => u.Id == id);
+
+
+        foundUser.FirstName = user.FirstName;
+        foundUser.LastName = user.LastName;
+        foundUser.UserName = user.UserName;
+        foundUser.Email = user.Email;
+        foundUser.ImageLocation = user.ImageLocation;
+
+        // Update roles
+        var userRoles = _dbContext.UserRoles.Where(ur => ur.UserId == foundUser.IdentityUserId).ToList();
+
+        // Remove existing roles
+        _dbContext.UserRoles.RemoveRange(userRoles);
+
+        // Add new roles from the request
+        foreach (var roleName in user.Roles)
+        {
+            var role = _dbContext.Roles.SingleOrDefault(r => r.Name == roleName);
+            if (role != null)
+            {
+                _dbContext.UserRoles.Add(new IdentityUserRole<string>
+                {
+                    UserId = foundUser.IdentityUserId,
+                    RoleId = role.Id
+                });
+            }
+        }
+
+        _dbContext.SaveChanges();
+        return NoContent();
+    }
+
 }
