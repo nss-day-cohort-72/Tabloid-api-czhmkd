@@ -11,6 +11,7 @@ public class TabloidDbContext : IdentityDbContext<IdentityUser>
     public DbSet<UserProfile> UserProfiles { get; set; }
     public DbSet<Posts> Posts { get; set; }
     public DbSet<Category> Category { get; set; }
+    public DbSet<Tag> Tags { get; set; }
 
 
     public TabloidDbContext(DbContextOptions<TabloidDbContext> context, IConfiguration config) : base(context)
@@ -223,5 +224,13 @@ public class TabloidDbContext : IdentityDbContext<IdentityUser>
             new Category { Id = 5, Name = "Education" }
         });
 
+        modelBuilder.Entity<Tag>().HasData(new Tag[]
+        {
+            new Tag { Id = 1, Name = "Technology" },
+            new Tag { Id = 2, Name = "Science" },
+            new Tag { Id = 3, Name = "Health" },
+            new Tag { Id = 4, Name = "Education" },
+            new Tag { Id = 5, Name = "Travel" }
+        });
     }
 }
