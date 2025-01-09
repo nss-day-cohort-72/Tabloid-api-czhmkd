@@ -32,6 +32,7 @@ public class UserProfileController : ControllerBase
             FirstName = up.FirstName,
             LastName = up.LastName,
             Email = up.IdentityUser.Email,
+            IsActive = up.IsActive,
             UserName = up.IdentityUser.UserName,
             IdentityUserId = up.IdentityUserId,
             Roles = _dbContext.UserRoles
@@ -98,21 +99,39 @@ public class UserProfileController : ControllerBase
     }
     [HttpPut("{id}")]
     [Authorize(Roles = "Admin")]
-    public IActionResult EditUser(int id, UserProfile user)
+    public async Task<IActionResult> EditUser(int id, UserProfile user)
     {
-        UserProfile foundUser = _dbContext.UserProfiles
-        .Include(up => up.IdentityUser)
-        .FirstOrDefault(u => u.Id == id);
+        // Find the UserProfile and include the related IdentityUser
+        var foundUser = _dbContext.UserProfiles
+            .Include(up => up.IdentityUser)
+            .FirstOrDefault(u => u.Id == id);
+
+        if (foundUser == null)
+        {
+            return NotFound("User not found.");
+        }
+
+        // Update UserProfile fields
         foundUser.FirstName = user.FirstName;
         foundUser.LastName = user.LastName;
-        foundUser.UserName = user.UserName;
         foundUser.Email = user.Email;
         foundUser.ImageLocation = user.ImageLocation;
+
+        // Update IdentityUser username and email
+        foundUser.IdentityUser.UserName = user.UserName;
+        foundUser.IdentityUser.Email = user.Email;
+
+        // Use UserManager to update IdentityUser
+        var userManager = HttpContext.RequestServices.GetService<UserManager<IdentityUser>>();
+        var result = await userManager.UpdateAsync(foundUser.IdentityUser);
+        if (!result.Succeeded)
+        {
+            return BadRequest(result.Errors);
+        }
+
         // Update roles
         var userRoles = _dbContext.UserRoles.Where(ur => ur.UserId == foundUser.IdentityUserId).ToList();
-        // Remove existing roles
         _dbContext.UserRoles.RemoveRange(userRoles);
-        // Add new roles from the request
         foreach (var roleName in user.Roles)
         {
             var role = _dbContext.Roles.SingleOrDefault(r => r.Name == roleName);
@@ -125,7 +144,27 @@ public class UserProfileController : ControllerBase
                 });
             }
         }
-        _dbContext.SaveChanges();
+
+        await _dbContext.SaveChangesAsync();
         return NoContent();
     }
+
+    [HttpPut("{id}/toggle-activate")]
+    [Authorize(Roles = "Admin")]
+    public async Task<IActionResult> ToggleActivate(int id)
+    {
+        var foundUser = _dbContext.UserProfiles.FirstOrDefault(up => up.Id == id);
+
+        if (foundUser == null)
+        {
+            return NotFound(); // Return 404 if user is not found
+        }
+
+        foundUser.IsActive = !foundUser.IsActive; // Toggle IsActive
+
+        await _dbContext.SaveChangesAsync(); // Save changes
+
+        return NoContent();
+    }
+
 }

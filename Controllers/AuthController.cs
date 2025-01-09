@@ -39,7 +39,21 @@ public class AuthController : ControllerBase
             string email = creds.Substring(0, separator);
             string password = creds.Substring(separator + 1);
 
-            var user = _dbContext.Users.Where(u => u.Email == email).FirstOrDefault();
+            // Find the user by email
+            var user = _dbContext.Users.FirstOrDefault(u => u.Email == email);
+
+            if (user == null)
+            {
+                return new UnauthorizedResult(); // User not found
+            }
+
+            // Check if the user is active
+            var userProfile = _dbContext.UserProfiles.SingleOrDefault(up => up.IdentityUserId == user.Id);
+            if (userProfile == null || !userProfile.IsActive)
+            {
+                return Unauthorized("Your account is inactive."); // Reject login if inactive
+            }
+
             var userRoles = _dbContext.UserRoles.Where(ur => ur.UserId == user.Id).ToList();
             var hasher = new PasswordHasher<IdentityUser>();
             var result = hasher.VerifyHashedPassword(user, user.PasswordHash, password);
@@ -130,6 +144,7 @@ public class AuthController : ControllerBase
                 FirstName = registration.FirstName,
                 LastName = registration.LastName,
                 ImageLocation = registration.ImageLocation,
+                IsActive = true,
                 CreateDateTime = DateTime.Now,
                 IdentityUserId = user.Id,
             });

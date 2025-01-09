@@ -27,6 +27,8 @@ public class UserProfile
     [MaxLength(255)]
     public string ImageLocation { get; set; }
 
+    public bool IsActive { get; set; }
+
     [NotMapped]
     public List<string> Roles { get; set; }
 
