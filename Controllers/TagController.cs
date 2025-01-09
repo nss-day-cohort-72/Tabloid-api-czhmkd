@@ -6,7 +6,7 @@ namespace Tabloid.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    // [Authorize(Roles = "Admin")]
+    [Authorize(Roles = "Admin")]
     public class TagController : ControllerBase
     {
         private TabloidDbContext _dbContext;
@@ -67,6 +67,43 @@ namespace Tabloid.Controllers
             _dbContext.SaveChanges();
 
             return CreatedAtAction(nameof(GetTagById), new { id = newTag.Id }, newTag);
+        }
+
+        //Update tag name
+        [HttpPut("{id}")]
+        public IActionResult UpdateTagName(int id, Tag updatedTag)
+        {
+            var tag = _dbContext.Tags.FirstOrDefault(t => t.Id == id);
+            if (tag == null)
+            {
+                return NotFound("Tag not found.");
+            }
+
+            if (string.IsNullOrWhiteSpace(updatedTag.Name))
+            {
+                return BadRequest("Tag name cannot be empty.");
+            }
+
+            tag.Name = updatedTag.Name;
+            _dbContext.SaveChanges();
+
+            return NoContent();
+        }
+
+        //Delete a tag
+        [HttpDelete("{id}")]
+        public IActionResult DeleteTag(int id)
+        {
+            var tag = _dbContext.Tags.FirstOrDefault(t => t.Id == id);
+            if (tag == null)
+            {
+                return NotFound("Tag not found.");
+            }
+
+            _dbContext.Tags.Remove(tag);
+            _dbContext.SaveChanges();
+
+            return NoContent();
         }
     }
 }
