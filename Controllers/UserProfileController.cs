@@ -129,11 +129,3 @@ public class UserProfileController : ControllerBase
         return NoContent();
     }
 }
-
-
-
-
-
-
-
-
