@@ -9,10 +9,12 @@ using System.Security.Claims;
 
 namespace Tabloid.Controllers;
 
+
 [ApiController]
 [Route("api/[controller]")]
 public class PostsController : ControllerBase
 {
+
     private TabloidDbContext _dbContext;
 
     public PostsController(TabloidDbContext context)
@@ -20,27 +22,48 @@ public class PostsController : ControllerBase
         _dbContext = context;
     }
 
+
+    ////Get Endpoints
+    //Get all posts that are approved and have a publication date in the past
     [HttpGet("approved")]
-    [Authorize]
+    // [Authorize]
     public IActionResult GetAllApprovedPosts()
     {
         var posts = _dbContext.Posts
-           .Include(p => p.Category)
-           .Where(p => p.IsApproved == true && p.PublicationDate < DateTime.Now)
-           .OrderByDescending(p => p.PublicationDate)
-           .Select(p => new
-           {
-               p.Id,
-               p.Title,
-               p.Author,
-               p.IsApproved,
-               p.PublicationDate,
-               Category = p.Category.Name
-           })
-           .ToList();
+            .Include(p => p.Category)
+            .Include(p => p.Comments)
+                .ThenInclude(c => c.UserProfile) // Include UserProfile for each comment
+            .Where(p => p.IsApproved == true && p.PublicationDate < DateTime.Now)
+            .OrderByDescending(p => p.PublicationDate)
+            .Select(p => new
+            {
+                p.Id,
+                p.Title,
+                p.Author,
+                p.IsApproved,
+                p.PublicationDate,
+                Category = p.Category.Name,
+                Comments = p.Comments.Select(c => new
+                {
+                    c.Id,
+                    c.Subject,
+                    c.Content,
+                    c.CreatedAt,
+                    User = new
+                    {
+                        c.UserProfile.Id,
+                        FullName = c.UserProfile.FullName,
+                        c.UserProfile.ImageLocation
+                    }
+                })
+            })
+            .ToList();
+
         return Ok(posts);
     }
 
+
+    // //Get the logged in users posts
     [HttpGet("myposts")]
     [Authorize]
     public IActionResult GetAllPosts()
@@ -62,6 +85,7 @@ public class PostsController : ControllerBase
         return Ok(posts);
     }
 
+    //Get a single posts details by Id
     [HttpGet("{id}")]
     [Authorize]
     public IActionResult GetPostDetails(int id)
@@ -70,6 +94,8 @@ public class PostsController : ControllerBase
         .Include(p => p.Category)
         .Include(p => p.PostTags)
         .ThenInclude(pt => pt.Tag)
+        .Include(p => p.Comments)
+            .ThenInclude(c => c.UserProfile)
         .Where(p => p.Id == id)
         .Select(p => new
         {
@@ -81,7 +107,20 @@ public class PostsController : ControllerBase
             p.Content,
             p.HeaderImage,
             Category = p.Category.Name,
-            Tags = p.PostTags.Select(pt => new { pt.Tag.Id, pt.Tag.Name })
+            Tags = p.PostTags.Select(pt => new { pt.Tag.Id, pt.Tag.Name }),
+            Comments = p.Comments.Select(c => new
+            {
+                c.Id,
+                c.Subject,
+                c.Content,
+                c.CreatedAt,
+                User = new
+                {
+                    c.UserProfile.Id,
+                    c.UserProfile.FullName,
+                    c.UserProfile.ImageLocation
+                }
+            }).ToList()
         })
         .FirstOrDefault();
 
@@ -93,10 +132,15 @@ public class PostsController : ControllerBase
         return Ok(post);
     }
 
+
+    ////Post Endpoints
+    //Create a new post
     [HttpPost("newpost")]
     // [Authorize]
     public IActionResult CreatePost(CreatePostDTO createPostDTO)
     {
+
+        //Get logged in users Identity User Id
         var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
         if (string.IsNullOrEmpty(userId))
@@ -104,6 +148,7 @@ public class PostsController : ControllerBase
             return Unauthorized(new { message = "Unauthorized" });
         }
 
+        //Find the user profile by the Identity User Id 
         var userProfile = _dbContext.UserProfiles.FirstOrDefault(up => up.IdentityUserId == userId);
 
         if (userProfile == null)
@@ -111,6 +156,7 @@ public class PostsController : ControllerBase
             return NotFound(new { message = "User not found." });
         }
 
+        //Create a new post object
         var newPost = new Posts()
         {
             Title = createPostDTO.Title,
@@ -122,9 +168,11 @@ public class PostsController : ControllerBase
             IsApproved = false
         };
 
+        //Add the post to the database
         _dbContext.Posts.Add(newPost);
         _dbContext.SaveChanges();
 
+        //return the details of the post
         return CreatedAtAction("GetPostDetails", new { id = newPost.Id }, newPost);
     }
 
@@ -176,7 +224,5 @@ public class PostsController : ControllerBase
 
         return NoContent();
     }
-
-
 
 }
