@@ -12,6 +12,7 @@ public class TabloidDbContext : IdentityDbContext<IdentityUser>
     public DbSet<Posts> Posts { get; set; }
     public DbSet<Category> Category { get; set; }
     public DbSet<Tag> Tags { get; set; }
+    public DbSet<PostTag> PostTags { get; set; }
 
 
     public TabloidDbContext(DbContextOptions<TabloidDbContext> context, IConfiguration config) : base(context)
@@ -223,7 +224,7 @@ public class TabloidDbContext : IdentityDbContext<IdentityUser>
             new Category { Id = 4, Name = "Travel" },
             new Category { Id = 5, Name = "Education" }
         });
-
+        //Seed Tags
         modelBuilder.Entity<Tag>().HasData(new Tag[]
         {
             new Tag { Id = 1, Name = "Technology" },
@@ -231,6 +232,31 @@ public class TabloidDbContext : IdentityDbContext<IdentityUser>
             new Tag { Id = 3, Name = "Health" },
             new Tag { Id = 4, Name = "Education" },
             new Tag { Id = 5, Name = "Travel" }
+        });
+
+        //Many to Many realtionship between Posts and Tags
+        modelBuilder.Entity<PostTag>()
+            .HasKey(pt => new { pt.PostId, pt.TagId });
+
+        modelBuilder.Entity<PostTag>()
+            .HasOne(pt => pt.Post)
+            .WithMany(p => p.PostTags)
+            .HasForeignKey(pt => pt.PostId);
+
+        modelBuilder.Entity<PostTag>()
+            .HasOne(pt => pt.Tag)
+            .WithMany(t => t.PostTags)
+            .HasForeignKey(pt => pt.TagId);
+
+        modelBuilder.Entity<PostTag>().HasData(new PostTag
+        {
+            PostId = 1,
+            TagId = 1
+        },
+        new PostTag
+        {
+            PostId = 2,
+            TagId = 2
         });
     }
 }

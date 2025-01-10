@@ -17,6 +17,7 @@ public class Posts
 
     public string HeaderImage { get; set; }
 
+    public List<PostTag> PostTags { get; set; }
 
     // Reference to Category class
     public int CategoryId { get; set; }

@@ -75,6 +75,8 @@ public class PostsController : ControllerBase
     {
         var post = _dbContext.Posts
         .Include(p => p.Category)
+        .Include(p => p.PostTags)
+        .ThenInclude(pt => pt.Tag)
         .Where(p => p.Id == id)
         .Select(p => new
         {
@@ -85,7 +87,8 @@ public class PostsController : ControllerBase
             PublicationDate = p.PublicationDate.ToString("MM/dd/yyyy"),
             p.Content,
             p.HeaderImage,
-            Category = p.Category.Name
+            Category = p.Category.Name,
+            Tags = p.PostTags.Select(pt => new { pt.Tag.Id, pt.Tag.Name })
         })
         .FirstOrDefault();
 
@@ -101,7 +104,7 @@ public class PostsController : ControllerBase
     ////Post Endpoints
     //Create a new post
     [HttpPost("newpost")]
-    [Authorize]
+    // [Authorize]
     public IActionResult CreatePost(CreatePostDTO createPostDTO)
     {
 
