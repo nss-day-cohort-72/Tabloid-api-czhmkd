@@ -16,6 +16,7 @@ public class Posts
     public string Content { get; set; }
 
     public string HeaderImage { get; set; }
+    public List<Comment> Comments { get; set; }
 
 
     // Reference to Category class

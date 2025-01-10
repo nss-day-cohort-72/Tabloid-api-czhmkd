@@ -30,21 +30,38 @@ public class PostsController : ControllerBase
     public IActionResult GetAllApprovedPosts()
     {
         var posts = _dbContext.Posts
-           .Include(p => p.Category)
-           .Where(p => p.IsApproved == true && p.PublicationDate < DateTime.Now)
-           .OrderByDescending(p => p.PublicationDate)
-           .Select(p => new
-           {
-               p.Id,
-               p.Title,
-               p.Author,
-               p.IsApproved,
-               p.PublicationDate,
-               Category = p.Category.Name
-           })
-           .ToList();
+            .Include(p => p.Category)
+            .Include(p => p.Comments)
+                .ThenInclude(c => c.UserProfile) // Include UserProfile for each comment
+            .Where(p => p.IsApproved == true && p.PublicationDate < DateTime.Now)
+            .OrderByDescending(p => p.PublicationDate)
+            .Select(p => new
+            {
+                p.Id,
+                p.Title,
+                p.Author,
+                p.IsApproved,
+                p.PublicationDate,
+                Category = p.Category.Name,
+                Comments = p.Comments.Select(c => new
+                {
+                    c.Id,
+                    c.Subject,
+                    c.Content,
+                    c.CreatedAt,
+                    User = new
+                    {
+                        c.UserProfile.Id,
+                        FullName = c.UserProfile.FullName,
+                        c.UserProfile.ImageLocation
+                    }
+                })
+            })
+            .ToList();
+
         return Ok(posts);
     }
+
 
     // //Get the logged in users posts
     [HttpGet("myposts")]
@@ -75,6 +92,8 @@ public class PostsController : ControllerBase
     {
         var post = _dbContext.Posts
         .Include(p => p.Category)
+        .Include(p => p.Comments)
+            .ThenInclude(c => c.UserProfile)
         .Where(p => p.Id == id)
         .Select(p => new
         {
@@ -85,7 +104,20 @@ public class PostsController : ControllerBase
             PublicationDate = p.PublicationDate.ToString("MM/dd/yyyy"),
             p.Content,
             p.HeaderImage,
-            Category = p.Category.Name
+            Category = p.Category.Name,
+            Comments = p.Comments.Select(c => new
+            {
+                c.Id,
+                c.Subject,
+                c.Content,
+                c.CreatedAt,
+                User = new
+                {
+                    c.UserProfile.Id,
+                    FullName = c.UserProfile.FullName,
+                    c.UserProfile.ImageLocation
+                }
+            }).ToList()
         })
         .FirstOrDefault();
 

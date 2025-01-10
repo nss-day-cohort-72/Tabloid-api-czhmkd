@@ -35,6 +35,7 @@ public class UserProfile
     public string IdentityUserId { get; set; }
 
     public IdentityUser IdentityUser { get; set; }
+    public List<Comment> Comments { get; set; }
 
     public string FullName
     {
