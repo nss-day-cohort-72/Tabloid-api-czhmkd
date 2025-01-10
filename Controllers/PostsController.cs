@@ -92,6 +92,8 @@ public class PostsController : ControllerBase
     {
         var post = _dbContext.Posts
         .Include(p => p.Category)
+        .Include(p => p.PostTags)
+        .ThenInclude(pt => pt.Tag)
         .Include(p => p.Comments)
             .ThenInclude(c => c.UserProfile)
         .Where(p => p.Id == id)
@@ -105,6 +107,7 @@ public class PostsController : ControllerBase
             p.Content,
             p.HeaderImage,
             Category = p.Category.Name,
+            Tags = p.PostTags.Select(pt => new { pt.Tag.Id, pt.Tag.Name }),
             Comments = p.Comments.Select(c => new
             {
                 c.Id,
@@ -133,7 +136,7 @@ public class PostsController : ControllerBase
     ////Post Endpoints
     //Create a new post
     [HttpPost("newpost")]
-    [Authorize]
+    // [Authorize]
     public IActionResult CreatePost(CreatePostDTO createPostDTO)
     {
 
@@ -221,4 +224,5 @@ public class PostsController : ControllerBase
 
         return NoContent();
     }
+
 }
