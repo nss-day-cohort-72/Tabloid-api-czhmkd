@@ -126,6 +126,7 @@ public class PostsController : ControllerBase
     }
 
     [HttpPut("edit/{id}")]
+    [Authorize]
     public IActionResult EditPost(int id, EditPostDTO editPostDTO)
     {
         var post = _dbContext.Posts.FirstOrDefault(p => p.Id == id);
@@ -145,4 +146,32 @@ public class PostsController : ControllerBase
 
         return NoContent();
     }
+
+    //Delete a post
+    [HttpDelete("delete/{id}")]
+    [Authorize]
+    public IActionResult DeletePost(int id)
+    {
+        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+        var post = _dbContext.Posts.FirstOrDefault(p => p.Id == id);
+
+        if (post == null)
+        {
+            return NotFound(new { message = "Post not found." });
+        }
+
+        var userProfile = _dbContext.UserProfiles.FirstOrDefault(up => up.IdentityUserId == userId);
+
+        if (userProfile == null || post.Author != userProfile.FullName)
+        {
+            return Forbid();
+        }
+
+        _dbContext.Posts.Remove(post);
+        _dbContext.SaveChanges();
+
+        return NoContent();
+    }
+
 }
