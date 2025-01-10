@@ -9,12 +9,10 @@ using System.Security.Claims;
 
 namespace Tabloid.Controllers;
 
-
 [ApiController]
 [Route("api/[controller]")]
 public class PostsController : ControllerBase
 {
-
     private TabloidDbContext _dbContext;
 
     public PostsController(TabloidDbContext context)
@@ -22,9 +20,6 @@ public class PostsController : ControllerBase
         _dbContext = context;
     }
 
-
-    ////Get Endpoints
-    //Get all posts that are approved and have a publication date in the past
     [HttpGet("approved")]
     [Authorize]
     public IActionResult GetAllApprovedPosts()
@@ -46,7 +41,6 @@ public class PostsController : ControllerBase
         return Ok(posts);
     }
 
-    // //Get the logged in users posts
     [HttpGet("myposts")]
     [Authorize]
     public IActionResult GetAllPosts()
@@ -68,7 +62,6 @@ public class PostsController : ControllerBase
         return Ok(posts);
     }
 
-    //Get a single posts details by Id
     [HttpGet("{id}")]
     [Authorize]
     public IActionResult GetPostDetails(int id)
@@ -97,15 +90,10 @@ public class PostsController : ControllerBase
         return Ok(post);
     }
 
-
-    ////Post Endpoints
-    //Create a new post
     [HttpPost("newpost")]
     [Authorize]
     public IActionResult CreatePost(CreatePostDTO createPostDTO)
     {
-
-        //Get logged in users Identity User Id
         var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
         if (string.IsNullOrEmpty(userId))
@@ -113,7 +101,6 @@ public class PostsController : ControllerBase
             return Unauthorized(new { message = "Unauthorized" });
         }
 
-        //Find the user profile by the Identity User Id 
         var userProfile = _dbContext.UserProfiles.FirstOrDefault(up => up.IdentityUserId == userId);
 
         if (userProfile == null)
@@ -121,7 +108,6 @@ public class PostsController : ControllerBase
             return NotFound(new { message = "User not found." });
         }
 
-        //Create a new post object
         var newPost = new Posts()
         {
             Title = createPostDTO.Title,
@@ -133,12 +119,30 @@ public class PostsController : ControllerBase
             IsApproved = false
         };
 
-        //Add the post to the database
         _dbContext.Posts.Add(newPost);
         _dbContext.SaveChanges();
 
-        //return the details of the post
         return CreatedAtAction("GetPostDetails", new { id = newPost.Id }, newPost);
     }
-}
 
+    [HttpPut("edit/{id}")]
+    public IActionResult EditPost(int id, EditPostDTO editPostDTO)
+    {
+        var post = _dbContext.Posts.FirstOrDefault(p => p.Id == id);
+
+        if (post == null)
+        {
+            return NotFound(new { message = "Post not found." });
+        }
+
+        post.Title = editPostDTO.Title;
+        post.Content = editPostDTO.Content;
+        post.CategoryId = editPostDTO.CategoryId;
+        post.HeaderImage = editPostDTO.HeaderImage;
+        post.PublicationDate = editPostDTO.PublicationDate ?? post.PublicationDate;
+
+        _dbContext.SaveChanges();
+
+        return NoContent();
+    }
+}
