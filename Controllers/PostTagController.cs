@@ -11,7 +11,7 @@ namespace Tabloid.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    [Authorize]
+    // [Authorize]
     public class PostTagController : ControllerBase
     {
         private readonly TabloidDbContext _dbContext;
@@ -21,67 +21,54 @@ namespace Tabloid.Controllers
             _dbContext = dbContext;
         }
 
-        // Add tags to a post
-        [HttpPost]
-        public IActionResult AddTagsToPost([FromBody] PostTagDTO dto)
+        [HttpGet("{postId}")]
+        public IActionResult GetTagsByPostId(int postId)
         {
-            // Find the post
-            var post = _dbContext.Posts.Include(p => p.PostTags).FirstOrDefault(p => p.Id == dto.PostId);
-            if (post == null)
-            {
-                return NotFound("Post not found.");
-            }
-
-            // Find the tags
-            var tags = _dbContext.Tags.Where(t => dto.TagIds.Contains(t.Id)).ToList();
-            if (tags.Count != dto.TagIds.Count)
-            {
-                return BadRequest("One or more tags do not exist.");
-            }
-
-            // Add associations
-            foreach (var tag in tags)
-            {
-                if (!post.PostTags.Any(pt => pt.TagId == tag.Id))
+            var tags = _dbContext.PostTags
+                .Where(pt => pt.PostId == postId)
+                .Include(pt => pt.Tag)
+                .Select(pt => new
                 {
-                    post.PostTags.Add(new PostTag { PostId = dto.PostId, TagId = tag.Id });
-                }
-            }
+                    pt.Tag.Id,
+                    pt.Tag.Name
+                })
+                .ToList();
 
-            _dbContext.SaveChanges();
-
-            // Return success response
-            return Ok(new
-            {
-                Message = $"Tags successfully associated with post: {post.Title}",
-                Tags = tags.Select(t => t.Name).ToList()
-            });
+            return Ok(tags);
         }
 
-        // Optional: Remove a tag from a post
-        [HttpDelete]
-        public IActionResult RemoveTagFromPost([FromBody] PostTagDTO dto)
+
+        [HttpPost]
+        public IActionResult UpdatePostTags([FromBody] PostTagDTO dto)
         {
-            // Find the post
             var post = _dbContext.Posts.Include(p => p.PostTags).FirstOrDefault(p => p.Id == dto.PostId);
-            if (post == null)
+            if (post == null) return NotFound("Post not found.");
+
+            // Get the current tag associations
+            var currentTagIds = post.PostTags.Select(pt => pt.TagId).ToList();
+
+            // Determine tags to add
+            var tagsToAdd = dto.TagIds.Except(currentTagIds).ToList();
+            foreach (var tagId in tagsToAdd)
             {
-                return NotFound("Post not found.");
+                post.PostTags.Add(new PostTag { PostId = dto.PostId, TagId = tagId });
             }
 
-            // Remove associations
-            foreach (var tagId in dto.TagIds)
+            // Determine tags to remove
+            var tagsToRemove = currentTagIds.Except(dto.TagIds).ToList();
+            foreach (var tagId in tagsToRemove)
             {
                 var postTag = post.PostTags.FirstOrDefault(pt => pt.TagId == tagId);
                 if (postTag != null)
                 {
-                    post.PostTags.Remove(postTag);
+                    _dbContext.PostTags.Remove(postTag);
                 }
             }
 
             _dbContext.SaveChanges();
 
-            return NoContent();
+            return Ok(new { message = "Tags successfully updated." });
         }
+
     }
 }
